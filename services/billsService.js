@@ -287,41 +287,59 @@ class BillService {
 
   static async deleteBill({ id }) {
     try {
-      const getOrder = await OrderRepo.getOrderByBillId({ billId: id });
+      await OrderRepo.deleteOrderById({ billId: id });
 
-      if (!getOrder) {
+      const bill = await BillsRepo.getBillById({ id });
+
+      if (!bill) {
         return {
           status: false,
           status_code: 404,
-          message: "no data found",
+          message: "Bill not found",
           data: { bill: null },
         };
+      }
+
+      const deleteBill = await BillsRepo.deleteBillById({ id });
+
+      const hotel = await HotelsRepo.getHotelById({ id: bill.hotelId });
+
+      if (!hotel) {
+        return {
+          status: false,
+          status_code: 404,
+          message: "Hotel not found",
+          data: { bill: null },
+        };
+      }
+
+      const newTotalBill = hotel.totalBill - bill.ordersTotal;
+
+      const updateTotalBill = await HotelsRepo.updateHotelTotalBill({
+        id: bill.hotelId,
+        totalBills: newTotalBill,
+      });
+
+      if (updateTotalBill) {
+        return {
+          status: true,
+          status_code: 200,
+          message: "Delete success",
+          data: { bill: deleteBill },
+        };
       } else {
-        const deleteOrder = await OrderRepo.deleteOrderById({ billId: id });
-
-        if (deleteOrder) {
-          const deleteBill = await BillsRepo.deleteBillById({ id });
-
-          return {
-            status: true,
-            status_code: 200,
-            message: "delete success",
-            data: { bill: deleteBill },
-          };
-        } else {
-          return {
-            status: false,
-            status_code: 407,
-            message: "delete failed",
-            data: { bill: null },
-          };
-        }
+        return {
+          status: false,
+          status_code: 407,
+          message: "Failed to update hotel total bill",
+          data: { bill: null },
+        };
       }
     } catch (error) {
       return {
         status: false,
         status_code: 500,
-        message: "error" + error,
+        message: "Error: " + error,
         data: { bill: null },
       };
     }
