@@ -11,10 +11,6 @@ module.exports = {
       },
       hotelId: {
         type: Sequelize.INTEGER,
-        references: {
-          model: "hotels",
-          key: "id",
-        },
       },
       ordersTotal: { type: Sequelize.BIGINT },
       // totalPaid: { type: Sequelize.BIGINT },
