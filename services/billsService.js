@@ -315,10 +315,12 @@ class BillService {
       }
 
       const newTotalBill = hotel.totalBills - bill.ordersTotal;
+      const newTotalPaid = hotel.totalPaid - bill.totalPaid;
 
       const updateTotalBill = await HotelsRepo.updateHotelTotalBill({
         id: bill.hotelId,
         totalBills: newTotalBill,
+        totalPaid: newTotalPaid,
       });
 
       if (updateTotalBill) {

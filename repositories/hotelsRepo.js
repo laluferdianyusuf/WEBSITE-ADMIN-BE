@@ -73,9 +73,9 @@ class HotelsRepo {
     return getHotel;
   }
 
-  static async updateHotelTotalBill({ id, totalBills }) {
+  static async updateHotelTotalBill({ id, totalBills, totalPaid }) {
     const updateHotelBill = await hotels.update(
-      { totalBills: totalBills },
+      { totalBills: totalBills, totalPaid: totalPaid },
       { where: { id: id } }
     );
     return updateHotelBill;
