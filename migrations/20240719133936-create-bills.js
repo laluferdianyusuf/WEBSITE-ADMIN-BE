@@ -13,7 +13,7 @@ module.exports = {
         type: Sequelize.INTEGER,
       },
       ordersTotal: { type: Sequelize.BIGINT },
-      // totalPaid: { type: Sequelize.BIGINT },
+      totalPaid: { type: Sequelize.BIGINT },
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE,

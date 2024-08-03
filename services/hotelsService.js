@@ -1,5 +1,6 @@
 const BillsRepo = require("../repositories/billsRepo");
 const HotelRepo = require("../repositories/hotelsRepo");
+const OrdersRepo = require("../repositories/ordersRepo");
 
 class HotelService {
   static async createHotel({ hotelName, statusDebt, totalBills, totalPaid }) {
@@ -28,7 +29,7 @@ class HotelService {
       } else {
         const createHotel = await HotelRepo.createHotel({
           hotelName: hotelName,
-          statusDebt: "Belum Dibayar",
+          statusDebt: "Belum Lunas",
           totalBills: 0,
           totalPaid: 0,
         });
@@ -165,20 +166,37 @@ class HotelService {
       const getHotel = await HotelRepo.getHotelById({ id });
       const getBills = await BillsRepo.getBillByHotelId(getHotel.id);
 
-      if (!totalPaid) {
+      if (!totalPaid || totalPaid <= 0) {
         return {
           status: false,
           status_code: 401,
-          message: "Total paid amount is required",
+          message: "Total paid amount is required and must be greater than 0",
           data: {
             hotel: null,
           },
         };
       }
 
-      const sortedBills = getBills
-        .filter((bill) => bill.ordersTotal > bill.totalPaid)
-        .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+      const sortedBills = getBills.sort(
+        (a, b) => new Date(a.createdAt) - new Date(b.createdAt)
+      );
+
+      let totalRemaining = sortedBills.reduce(
+        (sum, bill) => sum + (bill.ordersTotal - bill.totalPaid),
+        0
+      );
+
+      if (totalPaid > totalRemaining) {
+        return {
+          status: false,
+          status_code: 400,
+          message: "Total paid amount exceeds the remaining bill",
+          data: {
+            hotel: null,
+            bills: [],
+          },
+        };
+      }
 
       let remainingPayment = totalPaid;
       const updatedBills = [];
@@ -198,10 +216,16 @@ class HotelService {
         remainingPayment -= paymentForBill;
       }
 
+      const allBillsPaid = updatedBills.every(
+        (bill) => bill.ordersTotal === bill.totalPaid
+      );
+
+      const statusDebt = allBillsPaid ? "Lunas" : getHotel.statusDebt;
+
       const updatedHotel = await HotelRepo.editHotelPaid({
         id: id,
         totalPaid: getHotel.totalPaid + totalPaid - remainingPayment,
-        totalBills: getHotel.totalBills - (totalPaid - remainingPayment),
+        statusDebt: statusDebt,
       });
 
       return {
@@ -229,22 +253,38 @@ class HotelService {
   static async deleteHotel({ id }) {
     try {
       const deleteHotel = await HotelRepo.deleteHotel({ id });
+      if (!deleteHotel) {
+        return {
+          status: false,
+          status_code: 404,
+          message: "Hotel not found",
+          data: {
+            hotel: null,
+          },
+        };
+      }
+
+      const getBills = await BillsRepo.getAllBillByHotelId({ hotelId: id });
+      if (getBills.length > 0) {
+        const billIds = getBills.map((bill) => bill.id);
+        await OrdersRepo.deleteOrderById({ billId: billIds });
+        await BillsRepo.deleteBillById({ id: billIds });
+      }
 
       return {
         status: true,
-        status_code: 201,
-        message: "delete successfully",
+        status_code: 200,
+        message: "Deleted successfully",
         data: {
           hotel: deleteHotel,
         },
       };
     } catch (error) {
       console.log(error);
-
       return {
         status: false,
         status_code: 500,
-        message: "error: " + error,
+        message: "Error: " + error.message,
         data: {
           hotel: null,
         },

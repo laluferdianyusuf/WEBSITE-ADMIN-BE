@@ -17,7 +17,7 @@ class BillService {
         return {
           status: false,
           status_code: 400,
-          message: "Bills array is required",
+          message: "Bills is required",
           data: { bill: null },
         };
       }
@@ -35,7 +35,7 @@ class BillService {
       const createBill = await BillsRepo.createBill({
         hotelId: getHotel.id,
         ordersTotal: 0,
-        paidTotal: 0,
+        totalPaid: 0,
       });
 
       if (!createBill) {
@@ -218,6 +218,7 @@ class BillService {
         updatedAt: bill.updatedAt,
         hotelName: bill.hotel ? bill.hotel.hotelName : "Unknown Hotel",
         total: bill.ordersTotal,
+        paid: bill.totalPaid,
         orders: bill.orders.map((order, index) => ({
           productName: order.productName,
           quantity: order.quantity,
@@ -313,7 +314,7 @@ class BillService {
         };
       }
 
-      const newTotalBill = hotel.totalBill - bill.ordersTotal;
+      const newTotalBill = hotel.totalBills - bill.ordersTotal;
 
       const updateTotalBill = await HotelsRepo.updateHotelTotalBill({
         id: bill.hotelId,
@@ -376,6 +377,145 @@ class BillService {
         data: {
           bill: null,
         },
+      };
+    }
+  }
+
+  static async updateBill({ id, hotelId, billData }) {
+    try {
+      if (!hotelId) {
+        return {
+          status: false,
+          status_code: 400,
+          message: "Hotel ID is required",
+          data: { bill: null },
+        };
+      }
+
+      if (!billData || !Array.isArray(billData) || billData.length === 0) {
+        return {
+          status: false,
+          status_code: 400,
+          message: "Bills are required",
+          data: { bill: null },
+        };
+      }
+
+      const getHotel = await HotelsRepo.getHotelById({ id: hotelId });
+      if (!getHotel) {
+        return {
+          status: false,
+          status_code: 404,
+          message: "Hotel not found",
+          data: { bill: null },
+        };
+      }
+
+      const existingBill = await BillsRepo.getBillById({ id });
+      if (!existingBill) {
+        return {
+          status: false,
+          status_code: 404,
+          message: "Bill not found",
+          data: { bill: null },
+        };
+      }
+
+      const updateOrders = [];
+      for (const {
+        orderId,
+        productName,
+        quantity,
+        productPrice,
+        total,
+      } of billData) {
+        if (!orderId || !productName || !quantity || !productPrice || !total) {
+          return {
+            status: false,
+            status_code: 400,
+            message: "All order fields are required",
+            data: { bill: null },
+          };
+        }
+
+        const existingOrder = await OrderRepo.getOrderById({ id: orderId });
+        if (!existingOrder) {
+          return {
+            status: false,
+            status_code: 404,
+            message: `Order with ID ${orderId} not found`,
+            data: { bill: null },
+          };
+        }
+
+        const updateOrder = await OrderRepo.updateOrderById({
+          id: orderId,
+          productName,
+          quantity,
+          productPrice,
+          total,
+        });
+
+        if (!updateOrder) {
+          return {
+            status: false,
+            status_code: 500,
+            message: "Failed to update order",
+            data: { bill: null },
+          };
+        }
+
+        updateOrders.push(updateOrder);
+      }
+
+      const allOrders = await OrderRepo.getOrdersByBillId({ billId: id });
+      const newTotal = allOrders.reduce(
+        (sum, order) => sum + parseFloat(order.total),
+        0
+      );
+
+      const updatedBill = await BillsRepo.updateTotalBill({
+        id: id,
+        ordersTotal: newTotal,
+      });
+
+      if (!updatedBill) {
+        return {
+          status: false,
+          status_code: 500,
+          message: "Failed to update bill total",
+          data: { bill: null },
+        };
+      }
+
+      const updatedHotel = await HotelsRepo.updateHotelTotalBill({
+        id: getHotel.id,
+        totalBills: getHotel.totalBills + (newTotal - existingBill.ordersTotal),
+      });
+
+      if (!updatedHotel) {
+        return {
+          status: false,
+          status_code: 500,
+          message: "Failed to update hotel total bill",
+          data: { bill: null },
+        };
+      }
+
+      return {
+        status: true,
+        status_code: 200,
+        message:
+          "Bill and orders successfully updated, hotel total bill updated",
+        data: { bill: updateOrders },
+      };
+    } catch (error) {
+      console.error("Error updating bill:", error);
+      return {
+        status: false,
+        status_code: 500,
+        message: `Error: ${error.message}`,
+        data: { bill: null },
       };
     }
   }

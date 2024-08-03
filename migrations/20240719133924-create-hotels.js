@@ -14,10 +14,10 @@ module.exports = {
       },
       statusDebt: { type: Sequelize.STRING },
       totalBills: {
-        type: Sequelize.INTEGER,
+        type: Sequelize.BIGINT,
       },
       totalPaid: {
-        type: Sequelize.INTEGER,
+        type: Sequelize.BIGINT,
       },
       createdAt: {
         allowNull: false,

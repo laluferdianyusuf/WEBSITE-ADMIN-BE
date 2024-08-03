@@ -5,6 +5,7 @@ module.exports = (sequelize, DataTypes) => {
     static associate(models) {
       hotels.hasMany(models.bills, {
         foreignKey: "hotelId",
+        onDelete: "CASCADE",
       });
     }
   }
@@ -12,8 +13,8 @@ module.exports = (sequelize, DataTypes) => {
     {
       hotelName: DataTypes.STRING,
       statusDebt: DataTypes.STRING,
-      totalBills: DataTypes.INTEGER,
-      totalPaid: DataTypes.INTEGER,
+      totalBills: DataTypes.BIGINT,
+      totalPaid: DataTypes.BIGINT,
     },
     {
       sequelize,

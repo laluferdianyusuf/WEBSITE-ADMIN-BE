@@ -81,6 +81,24 @@ const getDetailBill = async (req, res, next) => {
   });
 };
 
+const updateBill = async (req, res) => {
+  const { id } = req.params;
+  const { hotelId, billData } = req.body;
+
+  const { status, status_code, message, data } = await BillsService.updateBill({
+    id,
+    hotelId,
+    billData,
+  });
+
+  res.status(status_code).send({
+    status: status,
+    status_code: status_code,
+    message: message,
+    data: data,
+  });
+};
+
 module.exports = {
   createBill,
   getBillsByHotelId,
@@ -88,4 +106,5 @@ module.exports = {
   deleteBillById,
   getAllBills,
   getDetailBill,
+  updateBill,
 };

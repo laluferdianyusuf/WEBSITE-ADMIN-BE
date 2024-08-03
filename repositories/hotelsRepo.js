@@ -17,9 +17,9 @@ class HotelsRepo {
     return editHotel;
   }
 
-  static async editHotelPaid({ id, totalBills, totalPaid }) {
+  static async editHotelPaid({ id, totalPaid, statusDebt }) {
     const editHotel = await hotels.update(
-      { totalBills, totalPaid },
+      { totalPaid, statusDebt },
       { where: { id: id } }
     );
     return editHotel;
@@ -53,7 +53,7 @@ class HotelsRepo {
       include: [
         {
           model: bills,
-          attributes: ["id", "ordersTotal", "createdAt"],
+          attributes: ["id", "ordersTotal", "totalPaid", "createdAt"],
           include: [
             {
               model: orders,

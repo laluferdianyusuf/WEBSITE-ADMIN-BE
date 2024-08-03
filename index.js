@@ -57,6 +57,11 @@ app.delete(
   middlewares.authenticate,
   billsController.deleteBillById
 );
+app.put(
+  "/api/v2/bills/update/:id",
+  // middlewares.authenticate,
+  billsController.updateBill
+);
 // end bills routes
 
 // hotels routes

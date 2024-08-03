@@ -9,6 +9,7 @@ module.exports = (sequelize, DataTypes) => {
 
       bills.hasMany(models.orders, {
         foreignKey: "billId",
+        onDelete: "CASCADE",
       });
     }
   }
@@ -16,7 +17,7 @@ module.exports = (sequelize, DataTypes) => {
     {
       hotelId: { type: DataTypes.INTEGER, allowNull: false },
       ordersTotal: { type: DataTypes.BIGINT },
-      // totalPaid: { type: DataTypes.BIGINT },
+      totalPaid: { type: DataTypes.BIGINT },
     },
     {
       sequelize,

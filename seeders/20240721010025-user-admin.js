@@ -5,12 +5,12 @@ const { JWT } = require("../lib/const");
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    const hashedPassword = await bcrypt.hash("UdTimur", JWT.SALT_ROUND);
+    const hashedPassword = await bcrypt.hash("admin", JWT.SALT_ROUND);
 
     await queryInterface.bulkInsert("users", [
       {
         name: "UdTimur",
-        username: "UdTimur",
+        username: "admin",
         password: hashedPassword,
         role: "administrator",
         createdAt: new Date(),

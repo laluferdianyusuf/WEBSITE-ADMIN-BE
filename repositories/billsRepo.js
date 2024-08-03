@@ -1,8 +1,8 @@
 const { bills, hotels, orders } = require("../models");
 
 class BillsRepo {
-  static async createBill({ hotelId, ordersTotal }) {
-    const newBill = await bills.create({ hotelId, ordersTotal });
+  static async createBill({ hotelId, ordersTotal, totalPaid }) {
+    const newBill = await bills.create({ hotelId, ordersTotal, totalPaid });
 
     return newBill;
   }
@@ -28,6 +28,11 @@ class BillsRepo {
     const getBills = await bills.findAll(query);
 
     return getBills;
+  }
+
+  static async getAllBillByHotelId({ hotelId }) {
+    const getHotel = await bills.findAll({ where: { hotelId: hotelId } });
+    return getHotel;
   }
 
   static async getAllBills() {
@@ -69,6 +74,11 @@ class BillsRepo {
 
   static async deleteBillById({ id }) {
     const deleteBill = await bills.destroy({ where: { id: id } });
+    return deleteBill;
+  }
+
+  static async deleteBillByHotelId({ hotelId }) {
+    const deleteBill = await bills.destroy({ where: { hotelId: hotelId } });
     return deleteBill;
   }
 
