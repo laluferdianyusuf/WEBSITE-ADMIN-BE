@@ -59,7 +59,7 @@ app.delete(
 );
 app.put(
   "/api/v2/bills/update/:id",
-  // middlewares.authenticate,
+  middlewares.authenticate,
   billsController.updateBill
 );
 // end bills routes
