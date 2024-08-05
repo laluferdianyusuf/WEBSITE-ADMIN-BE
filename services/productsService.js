@@ -14,18 +14,30 @@ class ProductService {
         };
       }
 
-      const createProduct = await ProductRepo.createProduct({
-        name: name,
-      });
+      const getProduct = await ProductRepo.getProductByName({ name });
+      if (getProduct) {
+        return {
+          status: false,
+          status_code: 400,
+          message: "Product name already exists",
+          data: {
+            product: null,
+          },
+        };
+      } else {
+        const createProduct = await ProductRepo.createProduct({
+          name: name,
+        });
 
-      return {
-        status: true,
-        status_code: 201,
-        message: "Product created successfully",
-        data: {
-          product: createProduct,
-        },
-      };
+        return {
+          status: true,
+          status_code: 201,
+          message: "Product created successfully",
+          data: {
+            product: createProduct,
+          },
+        };
+      }
     } catch (error) {
       return {
         status: false,

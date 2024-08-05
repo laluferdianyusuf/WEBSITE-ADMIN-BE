@@ -29,6 +29,11 @@ class ProductRepo {
     const getProducts = await products.findAll();
     return getProducts;
   }
+
+  static async getProductByName({ name }) {
+    const getProduct = await products.findOne({ name: name });
+    return getProduct;
+  }
 }
 
 module.exports = ProductRepo;

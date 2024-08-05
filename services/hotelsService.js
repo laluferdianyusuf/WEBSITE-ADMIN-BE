@@ -8,7 +8,7 @@ class HotelService {
       if (!hotelName) {
         return {
           status: false,
-          status_code: 401,
+          status_code: 400,
           message: "name is required",
           data: {
             hotel: null,
@@ -20,7 +20,7 @@ class HotelService {
       if (getHotel) {
         return {
           status: false,
-          status_code: 401,
+          status_code: 400,
           message: "name already exists",
           data: {
             hotel: null,
