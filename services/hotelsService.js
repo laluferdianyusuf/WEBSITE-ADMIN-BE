@@ -3,7 +3,7 @@ const HotelRepo = require("../repositories/hotelsRepo");
 const OrdersRepo = require("../repositories/ordersRepo");
 
 class HotelService {
-  static async createHotel({ hotelName, statusDebt, totalBills, totalPaid }) {
+  static async createHotel({ hotelName }) {
     try {
       if (!hotelName) {
         return {
@@ -62,8 +62,18 @@ class HotelService {
       if (!hotelName) {
         return {
           status: false,
-          status_code: 401,
-          message: "hotel name is required",
+          status_code: 400,
+          message: "Hotel name is required",
+          data: {
+            hotel: null,
+          },
+        };
+      }
+      if (getHotel.name) {
+        return {
+          status: false,
+          status_code: 400,
+          message: "Name already exists",
           data: {
             hotel: null,
           },
@@ -80,7 +90,7 @@ class HotelService {
         return {
           status: true,
           status_code: 200,
-          message: "update successful",
+          message: "Update successful",
           data: {
             hotel: updateHotel,
           },

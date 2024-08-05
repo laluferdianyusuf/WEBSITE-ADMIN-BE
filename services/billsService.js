@@ -13,11 +13,12 @@ class BillService {
           data: { bill: null },
         };
       }
+
       if (!billData || !Array.isArray(billData) || billData.length === 0) {
         return {
           status: false,
           status_code: 400,
-          message: "Bills is required",
+          message: "Bill data is required and should be a non-empty array",
           data: { bill: null },
         };
       }
@@ -53,7 +54,7 @@ class BillService {
           return {
             status: false,
             status_code: 400,
-            message: "Product fields are required",
+            message: "All product fields are required",
             data: { bill: null },
           };
         }
@@ -82,14 +83,23 @@ class BillService {
         billId: createBill.id,
       });
       const newTotal = allOrders.reduce(
-        (sum, order) => parseInt(sum) + parseInt(order.total),
+        (sum, order) => sum + parseInt(order.total),
         0
       );
 
-      await BillsRepo.updateTotalBill({
+      const updateBill = await BillsRepo.updateTotalBill({
         id: createBill.id,
         ordersTotal: newTotal,
       });
+
+      if (!updateBill) {
+        return {
+          status: false,
+          status_code: 500,
+          message: "Failed to update bill total",
+          data: { bill: null },
+        };
+      }
 
       const updatedHotel = await HotelsRepo.updateHotelTotalBill({
         id: getHotel.id,
@@ -111,7 +121,8 @@ class BillService {
         message:
           "Bill and orders successfully created, hotel total bill updated",
         data: {
-          bill: createdOrders,
+          bill: createBill,
+          orders: createdOrders,
         },
       };
     } catch (error) {
