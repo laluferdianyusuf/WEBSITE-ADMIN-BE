@@ -31,7 +31,7 @@ class ProductRepo {
   }
 
   static async getProductByName({ name }) {
-    const getProduct = await products.findOne({ name: name });
+    const getProduct = await products.findOne({ where: { name: name } });
     return getProduct;
   }
 }
