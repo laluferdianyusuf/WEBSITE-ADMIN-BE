@@ -174,7 +174,9 @@ class HotelService {
   static async updateHotelPaid({ id, totalPaid }) {
     try {
       const getHotel = await HotelRepo.getHotelById({ id });
-      const getBills = await BillsRepo.getBillByHotelId(getHotel.id);
+      const getBills = await BillsRepo.getBillByHotelId({
+        hotelId: getHotel.id,
+      });
 
       if (!totalPaid || totalPaid <= 0) {
         return {
@@ -187,26 +189,26 @@ class HotelService {
         };
       }
 
-      const sortedBills = getBills.sort(
-        (a, b) => new Date(a.createdAt) - new Date(b.createdAt)
-      );
-
-      let totalRemaining = sortedBills.reduce(
+      const totalOutstanding = getBills.reduce(
         (sum, bill) => sum + (bill.ordersTotal - bill.totalPaid),
         0
       );
 
-      if (totalPaid > totalRemaining) {
+      if (totalPaid > totalOutstanding) {
         return {
           status: false,
           status_code: 400,
-          message: "Total paid amount exceeds the remaining bill",
+          message: "Your total paid is outstanding.",
           data: {
             hotel: null,
             bills: [],
           },
         };
       }
+
+      const sortedBills = getBills.sort(
+        (a, b) => new Date(a.createdAt) - new Date(b.createdAt)
+      );
 
       let remainingPayment = totalPaid;
       const updatedBills = [];
@@ -234,7 +236,7 @@ class HotelService {
 
       const updatedHotel = await HotelRepo.editHotelPaid({
         id: id,
-        totalPaid: getHotel.totalPaid + totalPaid - remainingPayment,
+        totalPaid: getHotel.totalPaid + totalPaid,
         statusDebt: statusDebt,
       });
 
@@ -248,6 +250,8 @@ class HotelService {
         },
       };
     } catch (error) {
+      console.log(error);
+
       return {
         status: false,
         status_code: 500,

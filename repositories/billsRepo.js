@@ -114,10 +114,7 @@ class BillsRepo {
   }
 
   static async updateBillPaid({ id, totalPaid }) {
-    const updatePaidBill = await bills.update(
-      { totalPaid },
-      { where: { id: id } }
-    );
+    const updatePaidBill = await bills.update({ totalPaid }, { where: { id } });
     return updatePaidBill;
   }
 }
