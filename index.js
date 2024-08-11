@@ -122,7 +122,7 @@ app.get(
 );
 app.put(
   "/api/v5/products/update/:id",
-  // middlewares.authenticate,
+  middlewares.authenticate,
   productsController.updateProduct
 );
 app.delete(

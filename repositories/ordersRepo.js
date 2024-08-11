@@ -79,6 +79,11 @@ class OrdersRepo {
     const getOrder = await orders.findOne({ where: { billId: billId } });
     return getOrder;
   }
+
+  static async deleteOrderByUnique({ id }) {
+    const deleteOrder = await orders.destroy({ where: { id: id } });
+    return deleteOrder;
+  }
 }
 
 module.exports = OrdersRepo;

@@ -18,6 +18,8 @@ module.exports = (sequelize, DataTypes) => {
       hotelId: { type: DataTypes.INTEGER, allowNull: false },
       ordersTotal: { type: DataTypes.BIGINT },
       totalPaid: { type: DataTypes.BIGINT },
+      date: { type: DataTypes.DATE },
+      number: { type: DataTypes.STRING },
     },
     {
       sequelize,

@@ -1,10 +1,11 @@
 const BillsService = require("../services/billsService");
 
 const createBill = async (req, res) => {
-  const { hotelId, billData } = req.body;
+  const { hotelId, date, billData } = req.body;
 
   const { status, status_code, message, data } = await BillsService.createBill({
     hotelId,
+    date,
     billData,
   });
 
@@ -83,11 +84,12 @@ const getDetailBill = async (req, res, next) => {
 
 const updateBill = async (req, res) => {
   const { id } = req.params;
-  const { hotelId, billData } = req.body;
+  const { hotelId, date, billData } = req.body;
 
   const { status, status_code, message, data } = await BillsService.updateBill({
     id,
     hotelId,
+    date,
     billData,
   });
 

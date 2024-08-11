@@ -1,8 +1,15 @@
 const { bills, hotels, orders } = require("../models");
+const { Op } = require("sequelize");
 
 class BillsRepo {
-  static async createBill({ hotelId, ordersTotal, totalPaid }) {
-    const newBill = await bills.create({ hotelId, ordersTotal, totalPaid });
+  static async createBill({ hotelId, ordersTotal, totalPaid, date, number }) {
+    const newBill = await bills.create({
+      hotelId,
+      ordersTotal,
+      totalPaid,
+      date,
+      number,
+    });
 
     return newBill;
   }
@@ -40,7 +47,7 @@ class BillsRepo {
       include: [
         {
           model: hotels,
-          attributes: ["hotelName"],
+          attributes: ["id", "hotelName"],
         },
         {
           model: orders,
@@ -101,11 +108,17 @@ class BillsRepo {
       include: [
         {
           model: hotels,
-          attributes: ["hotelName"],
+          attributes: ["id", "hotelName"],
         },
         {
           model: orders,
-          attributes: ["productName", "quantity", "productPrice", "total"],
+          attributes: [
+            "id",
+            "productName",
+            "quantity",
+            "productPrice",
+            "total",
+          ],
         },
       ],
     });
@@ -116,6 +129,22 @@ class BillsRepo {
   static async updateBillPaid({ id, totalPaid }) {
     const updatePaidBill = await bills.update({ totalPaid }, { where: { id } });
     return updatePaidBill;
+  }
+
+  static async getLastInvoiceByDate({ date }) {
+    const getBill = await bills.findOne({
+      where: { date: { [Op.startsWith]: date } },
+      order: [["createdAt", "DESC"]],
+    });
+    return getBill;
+  }
+
+  static async updateBill({ id, hotelId, date }) {
+    const updatedBill = await bills.update(
+      { hotelId, date },
+      { where: { id: id } }
+    );
+    return updatedBill;
   }
 }
 

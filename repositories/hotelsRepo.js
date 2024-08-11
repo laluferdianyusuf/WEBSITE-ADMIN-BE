@@ -53,7 +53,7 @@ class HotelsRepo {
       include: [
         {
           model: bills,
-          attributes: ["id", "ordersTotal", "totalPaid", "createdAt"],
+          attributes: ["id", "ordersTotal", "totalPaid", "date", "createdAt"],
           include: [
             {
               model: orders,

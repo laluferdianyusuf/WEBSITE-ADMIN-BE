@@ -14,6 +14,12 @@ module.exports = {
       },
       ordersTotal: { type: Sequelize.BIGINT },
       totalPaid: { type: Sequelize.BIGINT },
+      date: {
+        type: Sequelize.DATE,
+      },
+      number: {
+        type: Sequelize.STRING,
+      },
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE,

@@ -3,13 +3,24 @@ const HotelsRepo = require("../repositories/hotelsRepo");
 const OrderRepo = require("../repositories/ordersRepo");
 
 class BillService {
-  static async createBill({ hotelId, billData }) {
+  static async createBill({ hotelId, date, billData }) {
     try {
+      const today = new Date().toISOString().split("T")[0];
+
       if (!hotelId) {
         return {
           status: false,
           status_code: 400,
           message: "Hotel ID is required",
+          data: { bill: null },
+        };
+      }
+
+      if (!date) {
+        return {
+          status: false,
+          status_code: 400,
+          message: "Date is required",
           data: { bill: null },
         };
       }
@@ -33,10 +44,23 @@ class BillService {
         };
       }
 
+      const lastInvoice = await BillsRepo.getLastInvoiceByDate({ date: today });
+
+      let nextInvoiceNumber = "001";
+      if (lastInvoice) {
+        const lastNumber = parseInt(lastInvoice.number.slice(-3));
+        nextInvoiceNumber = String(lastNumber + 1).padStart(3, "0");
+      }
+
+      const invoiceNumber = `TJR-${nextInvoiceNumber}`;
+      console.log("New Invoice Number:", invoiceNumber);
+
       const createBill = await BillsRepo.createBill({
         hotelId: getHotel.id,
         ordersTotal: 0,
         totalPaid: 0,
+        date: today,
+        number: invoiceNumber,
       });
 
       if (!createBill) {
@@ -225,7 +249,8 @@ class BillService {
 
       const result = billsWithHotel.map((bill) => ({
         billId: bill.id,
-        date: formatDate(bill.createdAt),
+        hotelId: bill.hotel ? bill.hotel.id : "unknown hotels",
+        date: formatDate(bill.date),
         updatedAt: bill.updatedAt,
         hotelName: bill.hotel ? bill.hotel.hotelName : "Unknown Hotel",
         total: bill.ordersTotal,
@@ -394,13 +419,21 @@ class BillService {
     }
   }
 
-  static async updateBill({ id, hotelId, billData }) {
+  static async updateBill({ id, hotelId, date, billData }) {
     try {
       if (!hotelId) {
         return {
           status: false,
           status_code: 400,
           message: "Hotel ID is required",
+          data: { bill: null },
+        };
+      }
+      if (!date) {
+        return {
+          status: false,
+          status_code: 400,
+          message: "Date is required",
           data: { bill: null },
         };
       }
@@ -424,7 +457,7 @@ class BillService {
         };
       }
 
-      const existingBill = await BillsRepo.getBillById({ id });
+      const existingBill = await BillsRepo.getBillById({ id: id });
       if (!existingBill) {
         return {
           status: false,
@@ -434,7 +467,22 @@ class BillService {
         };
       }
 
+      const updateBillDetail = await BillsRepo.updateBill({
+        id: id,
+        hotelId: hotelId,
+        date: date,
+      });
+      if (!updateBillDetail) {
+        return {
+          status: false,
+          status_code: 500,
+          message: "Failed to update bill details",
+          data: { bill: null },
+        };
+      }
+
       const updateOrders = [];
+
       for (const {
         orderId,
         productName,
@@ -442,7 +490,7 @@ class BillService {
         productPrice,
         total,
       } of billData) {
-        if (!orderId || !productName || !quantity || !productPrice || !total) {
+        if (!productName || !quantity || !productPrice || !total) {
           return {
             status: false,
             status_code: 400,
@@ -451,34 +499,55 @@ class BillService {
           };
         }
 
-        const existingOrder = await OrderRepo.getOrderById({ id: orderId });
-        if (!existingOrder) {
-          return {
-            status: false,
-            status_code: 404,
-            message: `Order with ID ${orderId} not found`,
-            data: { bill: null },
-          };
+        if (orderId) {
+          const existingOrder = await OrderRepo.getOrderById({ id: orderId });
+          if (!existingOrder) {
+            return {
+              status: false,
+              status_code: 404,
+              message: `Order with ID ${orderId} not found`,
+              data: { bill: null },
+            };
+          }
+
+          const updateOrder = await OrderRepo.updateOrderById({
+            id: orderId,
+            productName,
+            quantity,
+            productPrice,
+            total,
+          });
+
+          if (!updateOrder) {
+            return {
+              status: false,
+              status_code: 500,
+              message: "Failed to update order",
+              data: { bill: null },
+            };
+          }
+
+          updateOrders.push(updateOrder);
+        } else {
+          const createOrder = await OrderRepo.createOrder({
+            productName,
+            quantity,
+            productPrice,
+            total,
+            billId: id,
+          });
+
+          if (!createOrder) {
+            return {
+              status: false,
+              status_code: 500,
+              message: "Failed to create new order",
+              data: { bill: null },
+            };
+          }
+
+          updateOrders.push(createOrder);
         }
-
-        const updateOrder = await OrderRepo.updateOrderById({
-          id: orderId,
-          productName,
-          quantity,
-          productPrice,
-          total,
-        });
-
-        if (!updateOrder) {
-          return {
-            status: false,
-            status_code: 500,
-            message: "Failed to update order",
-            data: { bill: null },
-          };
-        }
-
-        updateOrders.push(updateOrder);
       }
 
       const allOrders = await OrderRepo.getOrdersByBillId({ billId: id });
@@ -520,14 +589,13 @@ class BillService {
         status_code: 200,
         message:
           "Bill and orders successfully updated, hotel total bill updated",
-        data: { bill: updateOrders },
+        data: { bill: updatedBill },
       };
     } catch (error) {
-      console.error("Error updating bill:", error);
       return {
         status: false,
         status_code: 500,
-        message: `Error: ${error.message}`,
+        message: `Error: ${error}`,
         data: { bill: null },
       };
     }
