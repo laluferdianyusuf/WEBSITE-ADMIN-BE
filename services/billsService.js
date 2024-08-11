@@ -59,7 +59,7 @@ class BillService {
         hotelId: getHotel.id,
         ordersTotal: 0,
         totalPaid: 0,
-        date: today,
+        date: date,
         number: invoiceNumber,
       });
 
