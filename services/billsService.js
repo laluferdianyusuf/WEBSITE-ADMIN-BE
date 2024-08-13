@@ -5,8 +5,6 @@ const OrderRepo = require("../repositories/ordersRepo");
 class BillService {
   static async createBill({ hotelId, date, billData }) {
     try {
-      const today = new Date().toISOString().split("T")[0];
-
       if (!hotelId) {
         return {
           status: false,
@@ -44,7 +42,7 @@ class BillService {
         };
       }
 
-      const lastInvoice = await BillsRepo.getLastInvoiceByDate({ date: today });
+      const lastInvoice = await BillsRepo.getLastInvoice();
 
       let nextInvoiceNumber = "001";
       if (lastInvoice) {

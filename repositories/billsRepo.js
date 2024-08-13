@@ -139,6 +139,14 @@ class BillsRepo {
     return getBill;
   }
 
+  static async getLastInvoice() {
+    const getLastBill = await bills.findOne({
+      order: [["createdAt", "DESC"]],
+    });
+
+    return getLastBill;
+  }
+
   static async updateBill({ id, hotelId, date }) {
     const updatedBill = await bills.update(
       { hotelId, date },
