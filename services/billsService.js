@@ -43,11 +43,20 @@ class BillService {
       }
 
       const lastInvoice = await BillsRepo.getLastInvoice();
+      const today = new Date().toISOString().split("T")[0];
+      console.log(today);
 
       let nextInvoiceNumber = "001";
+
       if (lastInvoice) {
-        const lastNumber = parseInt(lastInvoice.number.slice(-3));
-        nextInvoiceNumber = String(lastNumber + 1).padStart(3, "0");
+        const lastInvoiceDate = new Date(lastInvoice.createdAt)
+          .toISOString()
+          .split("T")[0];
+
+        if (lastInvoiceDate === today) {
+          const lastNumber = parseInt(lastInvoice.number.slice(-3));
+          nextInvoiceNumber = String(lastNumber + 1).padStart(3, "0");
+        }
       }
 
       const invoiceNumber = `TJR-${nextInvoiceNumber}`;

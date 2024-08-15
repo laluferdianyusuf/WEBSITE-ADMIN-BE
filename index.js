@@ -1,6 +1,7 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const cors = require("cors");
+require("dotenv").config();
 
 const app = express();
 const PORT = 2500;
@@ -33,7 +34,7 @@ app.get(
 // bills routes
 app.post(
   "/api/v2/bills/create",
-  middlewares.authenticate,
+  // middlewares.authenticate,
   billsController.createBill
 );
 app.get(
