@@ -34,7 +34,7 @@ app.get(
 // bills routes
 app.post(
   "/api/v2/bills/create",
-  // middlewares.authenticate,
+  middlewares.authenticate,
   billsController.createBill
 );
 app.get(
@@ -108,6 +108,11 @@ app.get(
 // orders routes
 app.put("/api/v4/orders/update/:id", ordersController.updateBillById);
 app.post("/api/v4/orders/created", ordersController.createOrders);
+app.delete(
+  "/api/v4/orders/delete/:id",
+  middlewares.authenticate,
+  ordersController.deleteOrderById
+);
 // end orders routes
 
 // products routes

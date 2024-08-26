@@ -464,7 +464,7 @@ class BillService {
         };
       }
 
-      const existingBill = await BillsRepo.getBillById({ id: id });
+      const existingBill = await BillsRepo.getBillById({ id });
       if (!existingBill) {
         return {
           status: false,
@@ -475,9 +475,9 @@ class BillService {
       }
 
       const updateBillDetail = await BillsRepo.updateBill({
-        id: id,
-        hotelId: hotelId,
-        date: date,
+        id,
+        hotelId,
+        date,
       });
       if (!updateBillDetail) {
         return {
@@ -488,8 +488,30 @@ class BillService {
         };
       }
 
-      const updateOrders = [];
+      const existingOrders = await OrderRepo.getOrdersByBillId({ billId: id });
+      const incomingOrderIds = billData
+        .map((order) => order.orderId)
+        .filter(Boolean);
 
+      const ordersToDelete = existingOrders.filter(
+        (order) => !incomingOrderIds.includes(order.id)
+      );
+
+      for (const order of ordersToDelete) {
+        const deletedOrder = await OrderRepo.deleteOrderByUnique({
+          id: order.id,
+        });
+        if (!deletedOrder) {
+          return {
+            status: false,
+            status_code: 500,
+            message: `Failed to delete order with ID ${order.id}`,
+            data: { bill: null },
+          };
+        }
+      }
+
+      const updateOrders = [];
       for (const {
         orderId,
         productName,
@@ -564,7 +586,7 @@ class BillService {
       );
 
       const updatedBill = await BillsRepo.updateTotalBill({
-        id: id,
+        id,
         ordersTotal: newTotal,
       });
 

@@ -43,6 +43,7 @@ class OrderService {
       };
     }
   }
+
   static async updateOrderById({ id, productName, quantity, productPrice }) {
     try {
       const getOrder = await OrderRepo.getOrderById({ id });
@@ -77,8 +78,42 @@ class OrderService {
       } else {
         return {
           status: false,
-          status_code: 401,
+          status_code: 400,
           message: "updated unsuccessfully",
+          data: {
+            orders: null,
+          },
+        };
+      }
+    } catch (error) {
+      return {
+        status: false,
+        status_code: 500,
+        message: "error" + error,
+        data: { orders: null },
+      };
+    }
+  }
+
+  static async deleteOrderById({ id }) {
+    try {
+      const getOrder = await OrderRepo.getOrderById({ id });
+
+      if (getOrder) {
+        const deleteOrder = await OrderRepo.deleteOrderByUnique({ id: id });
+        return {
+          status: true,
+          status_code: 200,
+          message: "deleted successfully",
+          data: {
+            orders: deleteOrder,
+          },
+        };
+      } else {
+        return {
+          status: false,
+          status_code: 400,
+          message: "deleted unsuccessfully",
           data: {
             orders: null,
           },
