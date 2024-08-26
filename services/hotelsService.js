@@ -207,7 +207,7 @@ class HotelService {
       }
 
       const sortedBills = getBills.sort(
-        (a, b) => new Date(a.createdAt) - new Date(b.createdAt)
+        (a, b) => new Date(a.date) - new Date(b.date)
       );
 
       let remainingPayment = totalPaid;

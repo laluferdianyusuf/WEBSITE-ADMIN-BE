@@ -67,6 +67,8 @@ class HotelsRepo {
               ],
             },
           ],
+          separate: true,
+          order: [["date", "ASC"]],
         },
       ],
     });
